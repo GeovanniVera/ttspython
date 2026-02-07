@@ -75,11 +75,19 @@ def merge_wavs(base_dir, base_name, total_chunks):
     final_dir = os.path.join(os.path.dirname(base_dir), "final")
     os.makedirs(final_dir, exist_ok=True)
     
+    
     output_wav = os.path.join(final_dir, f"{base_name}_final.wav")
     
+    ffmpeg_exe = "ffmpeg"
+    try:
+        import imageio_ffmpeg
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        pass
+
     # Command: ffmpeg -f concat -safe 0 -i mylist.txt -c copy output.wav
     cmd = [
-        "ffmpeg",
+        ffmpeg_exe,
         "-f", "concat",
         "-safe", "0",
         "-i", list_path,
@@ -89,7 +97,8 @@ def merge_wavs(base_dir, base_name, total_chunks):
     ]
     
     try:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        # CREATE_NO_WINDOW = 0x08000000
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True, creationflags=0x08000000)
     except subprocess.CalledProcessError as e:
         raise Exception(f"FFmpeg merge failed: {e.stderr.decode() if e.stderr else 'Unknown error'}")
         

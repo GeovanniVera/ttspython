@@ -1,7 +1,10 @@
 import subprocess
 import os
 import sys
+import shutil
 import datetime
+import asyncio
+import edge_tts
 
 # Voice Configuration
 VOICE = "es-CL-LorenzoNeural"
@@ -9,19 +12,27 @@ VOICE = "es-CL-LorenzoNeural"
 # Edge TTS uses this underlying endpoint via websocket (wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1)
 
 class TTSEngine:
-    def __init__(self):
+    def __init__(self, log_callback=None):
         # Optional: Check if edge-tts is installed/runnable
-        pass
+        self.log_callback = log_callback
 
     def _log_trace(self, message):
         """Standardized trace logging for external connections."""
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[TRACE] [{timestamp}] [EXTERNAL-NET] {message}")
+        full_msg = f"[TRACE] [{timestamp}] [EXTERNAL-NET] {message}"
+        print(full_msg)
+        if self.log_callback:
+            self.log_callback(full_msg + "\n")
 
-    def save_to_file(self, text, filepath):
+    def save_to_file(self, text, filepath, voice=VOICE, rate="+0%", pitch="+0Hz"):
         """
         Synthesizes text using Edge TTS (Online).
-        Generates MP3 and converts it to WAV for compatibility.
+        Args:
+            text (str): Input text.
+            filepath (str): Output path (.wav).
+            voice (str): Voice ID (e.g. es-MX-JorgeNeural).
+            rate (str): Speech rate (e.g. +10%, -20%).
+            pitch (str): Speech pitch (e.g. +5Hz, -2Hz).
         """
         if not text or not text.strip():
             return
@@ -32,35 +43,35 @@ class TTSEngine:
             
             # Traceability Log: Start
             self._log_trace(f"Connecting to Microsoft Edge TTS Service (Online)")
-            self._log_trace(f"Endpoint: wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1")
-            self._log_trace(f"Request: Voice='{VOICE}', TextLength={len(text)} chars")
+            self._log_trace(f"Request: Voice='{voice}', Rate='{rate}', Pitch='{pitch}'")
 
-            # 2. Run Edge TTS CLI
-            # Command: edge-tts --voice es-MX-JorgeNeural --text "TEXT" --write-media output.mp3
-            cmd_tts = [
-                "edge-tts",
-                "--voice", VOICE,
-                "--text", text,
-                "--write-media", temp_mp3
-            ]
+            # 2. Generate Audio using Python Library (No subprocess)
+            # This is safe for PyInstaller/Production
             
-            # Run TTS process
-            process = subprocess.run(cmd_tts, capture_output=True, text=True)
-            
-            if process.returncode != 0:
-                self._log_trace(f"Status: FAILED. Error: {process.stderr}")
-                raise Exception(f"EdgeTTS Error: {process.stderr}")
+            async def _generate():
+                communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+                await communicate.save(temp_mp3)
+
+            # blocked run 
+            asyncio.run(_generate())
             
             self._log_trace("Status: SUCCESS. Media received.")
 
             if not os.path.exists(temp_mp3):
-                 raise Exception("MP3 file was not created by EdgeTTS.")
+                 raise Exception("MP3 file was not created by API.")
 
             # 3. Convert MP3 to WAV using FFmpeg
-            # We overwrite filepath (-y) if it exists
+            # Always prefer imageio_ffmpeg if available for consistency
+            ffmpeg_exe = "ffmpeg"
+            try:
+                import imageio_ffmpeg
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            except ImportError:
+                pass # Fallback to system PATH
+
             print(f"[INTERNAL] Converting MP3 -> WAV via FFmpeg")
             cmd_ffmpeg = [
-                "ffmpeg",
+                ffmpeg_exe,
                 "-i", temp_mp3,
                 "-acodec", "pcm_s16le",
                 "-ar", "44100",
@@ -68,7 +79,8 @@ class TTSEngine:
                 filepath
             ]
             
-            subprocess.run(cmd_ffmpeg, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+            # CREATE_NO_WINDOW = 0x08000000
+            subprocess.run(cmd_ffmpeg, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True, creationflags=0x08000000)
             
             # 4. Cleanup
             if os.path.exists(temp_mp3):

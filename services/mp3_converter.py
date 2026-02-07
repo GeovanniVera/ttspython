@@ -24,9 +24,16 @@ def convert_wav_to_mp3(wav_path):
     mp3_path = f"{base}.mp3"
     
     # FFmpeg command
+    ffmpeg_exe = "ffmpeg"
+    try:
+        import imageio_ffmpeg
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        pass
+
     # ffmpeg -i input.wav -codec:a libmp3lame -qscale:a 2 output.mp3
     cmd = [
-        "ffmpeg",
+        ffmpeg_exe,
         "-i", wav_path,
         "-codec:a", "libmp3lame",
         "-qscale:a", "2", # VBR High Quality
@@ -35,7 +42,8 @@ def convert_wav_to_mp3(wav_path):
     ]
     
     try:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        # CREATE_NO_WINDOW = 0x08000000
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True, creationflags=0x08000000)
     except subprocess.CalledProcessError as e:
         raise Exception(f"FFmpeg MP3 conversion failed: {e.stderr.decode() if e.stderr else 'Unknown error'}")
         

@@ -1,10 +1,12 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext
+
+import customtkinter as ctk
+import tkinter as tk # For some specific mixed usage if needed, mostly pure CTk
+from tkinter import filedialog, messagebox
 import os
 import sys
 import threading
 
-# Add the current directory to sys.path to ensure modules can be imported
+# Add services
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
@@ -14,324 +16,358 @@ from services import pdf_extractor
 from services import text_preprocessor
 from services import chunker
 from services import output_manager
-from services import output_manager
 from services import tts_engine
 from services import wav_merger
 from services import mp3_converter
+from services.config_manager import ConfigManager
 
-class AntigravityApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Antigravity - Text to Speech")
-        self.root.geometry("700x650") # Increased height for new sections
+# --- Configuration & Theme ---
+ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
+ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
+class AntigravityApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # Window Setup
+        self.title("Open Source PDF To Speech - Studio")
+        self.geometry("900x750")
+        self.minsize(800, 600)
         
+        # State
+        self.config = ConfigManager()
         self.journal = Journal()
         self.current_pdf_path = None
         self.extracted_text = None
         self.output_chunks_dir = None
+        self.final_mp3_path = None
+        self.is_running = False # Flag for cancellation
         
-        self.create_widgets()
-        self.check_environment()
+        # Grid Layout
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-    def create_widgets(self):
-        # --- Stage 1: Input ---
-        frame_input = tk.LabelFrame(self.root, text="1. Entrada", padx=10, pady=5)
-        frame_input.pack(fill=tk.X, padx=10, pady=5)
+        # --- Sidebar (Left) ---
+        self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0)
+        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
+        self.sidebar_frame.grid_rowconfigure(4, weight=1)
 
-        self.btn_load = tk.Button(frame_input, text="Cargar PDF", command=self.load_pdf, height=1)
-        self.btn_load.pack(fill=tk.X)
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="Open Source\nPDF To Speech", font=ctk.CTkFont(size=24, weight="bold"))
+        self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
+
+        self.label_version = ctk.CTkLabel(self.sidebar_frame, text="v1.1", font=ctk.CTkFont(size=12))
+        self.label_version.grid(row=1, column=0, padx=20, pady=10)
         
-        self.lbl_file = tk.Label(frame_input, text="Ningún archivo seleccionado", fg="grey")
-        self.lbl_file.pack(fill=tk.X)
+       
+        # --- GitHub Link ---
+        def open_github():
+            import webbrowser
+            webbrowser.open("https://github.com/GeovanniVera/ttspython")
 
-        # --- Stage 2: Preparation ---
-        frame_prep = tk.LabelFrame(self.root, text="2. Preparación", padx=10, pady=5)
-        frame_prep.pack(fill=tk.X, padx=10, pady=5)
-
-        self.btn_process = tk.Button(frame_prep, text="Procesar Texto", command=self.start_processing_thread, height=1, state=tk.DISABLED)
-        self.btn_process.pack(fill=tk.X)
-        
-        self.lbl_stats = tk.Label(frame_prep, text="Páginas: - | Palabras: -", fg="grey")
-        self.lbl_stats.pack(fill=tk.X)
-
-        # --- Stage 3: Synthesis ---
-        frame_synth = tk.LabelFrame(self.root, text="3. Síntesis (TTS)", padx=10, pady=5)
-        frame_synth.pack(fill=tk.X, padx=10, pady=5)
-
-        self.btn_tts = tk.Button(frame_synth, text="Generar Audio (SAPI)", command=self.start_tts_thread, height=1, state=tk.DISABLED, bg="#e1f5fe")
-        self.btn_tts.pack(fill=tk.X)
-        
-        self.lbl_progress = tk.Label(frame_synth, text="Progreso: -", fg="grey")
-        self.lbl_progress.pack(fill=tk.X)
-
-        # --- Stage 4: Output & Finalize ---
-        frame_output = tk.LabelFrame(self.root, text="4. Salida", padx=10, pady=5)
-        frame_output.pack(fill=tk.X, padx=10, pady=5)
-
-        self.btn_open_folder = tk.Button(frame_output, text="Abrir Carpeta de Fragmentos", command=self.open_output_folder, state=tk.DISABLED)
-        self.btn_open_folder.pack(fill=tk.X, pady=(0, 5))
-        
-        # Placeholders for future deliveries
-        self.btn_merge = tk.Button(frame_output, text="Unir Audio (WAV Final)", command=self.start_merge_thread, state=tk.DISABLED)
-        self.btn_merge.pack(fill=tk.X, pady=(0, 5))
-        
-        self.btn_mp3 = tk.Button(frame_output, text="Convertir a MP3 (Final)", command=self.start_mp3_thread, state=tk.DISABLED)
-        self.btn_mp3.pack(fill=tk.X)
-
-        # --- Status & Logs ---
-        self.lbl_status = tk.Label(self.root, text="Estado: Esperando PDF...", fg="grey", pady=5)
-        self.lbl_status.pack(fill=tk.X)
-
-        log_frame = tk.Frame(self.root, padx=10)
-        log_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
-
-        lbl_log = tk.Label(log_frame, text="Bitácora de Eventos", anchor="w")
-        lbl_log.pack(fill=tk.X)
-
-        self.txt_log = scrolledtext.ScrolledText(log_frame, state=tk.DISABLED, height=8)
-        self.txt_log.pack(fill=tk.BOTH, expand=True)
-
-        self.journal.set_widget(self.txt_log)
-        self.journal.info("Aplicación iniciada. UI optimizada cargada.")
-
-    def check_environment(self):
-        self.journal.info("Verificando entorno...")
-        if not utils.check_ffmpeg():
-            error_msg = "FFmpeg no detectado. Instale FFmpeg y agréguelo al PATH."
-            self.journal.error(error_msg)
-            messagebox.showerror("Error Crítico", error_msg)
-            self.btn_load.config(state=tk.DISABLED)
-            self.lbl_status.config(text="Error: FFmpeg no encontrado", fg="red")
-        else:
-            self.journal.info("FFmpeg detectado correctamente.")
-
-    def load_pdf(self):
-        filepath = filedialog.askopenfilename(
-            title="Seleccionar archivo PDF",
-            filetypes=[("Archivos PDF", "*.pdf")]
+        self.github_link = ctk.CTkLabel(
+            self.sidebar_frame, 
+            text="GitHub Repository", 
+            font=ctk.CTkFont(size=12, underline=True),
+            text_color="#1f538d", # Color azul profesional
+            cursor="hand2"        # Cambia el cursor al pasar el mouse
         )
+        self.github_link.grid(row=3, column=0, padx=20, pady=10)
+        
+        # Vincular el clic al navegador
+        self.github_link.bind("<Button-1>", lambda e: open_github())
 
-        if not filepath:
-            return
+        # --- Main Area (Right) ---
+        self.main_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.main_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.main_frame.grid_columnconfigure(0, weight=1)
 
-        self.journal.info(f"Intentando cargar: {filepath}")
-        is_valid, message = utils.validate_pdf(filepath)
+        # 1. File Input Section
+        self.frame_file = ctk.CTkFrame(self.main_frame)
+        self.frame_file.grid(row=0, column=0, sticky="ew", pady=(0, 15))
+        self.frame_file.grid_columnconfigure(1, weight=1)
 
-        if is_valid:
-            self.current_pdf_path = filepath
-            self.extracted_text = None 
-            self.output_chunks_dir = None
-            
-            self.lbl_file.config(text=f"Archivo: {os.path.basename(filepath)}", fg="black")
-            self.lbl_status.config(text="PDF Cargado. Listo para procesar.", fg="green")
-            self.journal.info("PDF validado y cargado exitosamente.")
-            
-            # Reset workflow
-            self.btn_process.config(state=tk.NORMAL)
-            self.btn_tts.config(state=tk.DISABLED)
-            self.btn_open_folder.config(state=tk.DISABLED)
-            self.lbl_stats.config(text="Páginas: - | Palabras: -")
-            self.lbl_progress.config(text="Progreso: -")
-            
-        else:
-            self.lbl_status.config(text="Error al cargar PDF", fg="red")
-            self.journal.error(f"Validación fallida: {message}")
-            messagebox.showerror("Error de Validación", message)
-            self.btn_process.config(state=tk.DISABLED)
-            self.current_pdf_path = None
+        self.btn_load = ctk.CTkButton(self.frame_file, text="Cargar PDF", command=self.load_pdf, height=40, font=ctk.CTkFont(size=14, weight="bold"))
+        self.btn_load.grid(row=0, column=0, padx=15, pady=15)
 
-    def start_processing_thread(self):
-        if not self.current_pdf_path:
-            return
-        self.toggle_inputs(False)
-        self.lbl_status.config(text="Procesando PDF...", fg="blue")
-        threading.Thread(target=self.process_pdf, daemon=True).start()
+        self.lbl_file_info = ctk.CTkLabel(self.frame_file, text="Ningún archivo seleccionado", text_color="gray")
+        self.lbl_file_info.grid(row=0, column=1, padx=15, pady=15, sticky="w")
+        
+        self.lbl_stats = ctk.CTkLabel(self.frame_file, text="Páginas: - | Palabras: -", text_color="gray")
+        self.lbl_stats.grid(row=0, column=2, padx=15, pady=15, sticky="e")
 
-    def process_pdf(self):
+        # 2. Voice & Tone Settings
+        self.frame_settings = ctk.CTkFrame(self.main_frame)
+        self.frame_settings.grid(row=1, column=0, sticky="ew", pady=(0, 15))
+        self.frame_settings.grid_columnconfigure((0, 1, 2), weight=1)
+
+        # Load Saved Settings
+        saved_voice = self.config.get("voice", "Jorge (México)")
+        saved_rate = self.config.get("rate", 0.0)
+        saved_pitch = self.config.get("pitch", 0.0)
+
+        # Voice Selector
+        self.lbl_voice = ctk.CTkLabel(self.frame_settings, text="Voz Neural", font=ctk.CTkFont(weight="bold"))
+        self.lbl_voice.grid(row=0, column=0, padx=15, pady=(15, 5), sticky="w")
+        
+        self.voice_var = ctk.StringVar(value=saved_voice)
+        self.opt_voice = ctk.CTkOptionMenu(self.frame_settings, values=["Jorge (México)", "Lorenzo (Chile)", "Dalia (México)", "Alvaro (España)"], variable=self.voice_var, command=self.save_settings)
+        self.opt_voice.grid(row=1, column=0, padx=15, pady=(0, 15), sticky="ew")
+
+        # Rate Slider
+        self.lbl_rate = ctk.CTkLabel(self.frame_settings, text=f"Velocidad: {int(saved_rate)}%", font=ctk.CTkFont(weight="bold"))
+        self.lbl_rate.grid(row=0, column=1, padx=15, pady=(15, 5), sticky="w")
+        
+        self.slider_rate = ctk.CTkSlider(self.frame_settings, from_=-50, to=50, number_of_steps=20, command=self.update_rate_label)
+        self.slider_rate.set(saved_rate)
+        self.slider_rate.grid(row=1, column=1, padx=15, pady=(0, 15), sticky="ew")
+
+        # Pitch Slider
+        self.lbl_pitch = ctk.CTkLabel(self.frame_settings, text=f"Tono: {int(saved_pitch)}Hz", font=ctk.CTkFont(weight="bold"))
+        self.lbl_pitch.grid(row=0, column=2, padx=15, pady=(15, 5), sticky="w")
+        
+        self.slider_pitch = ctk.CTkSlider(self.frame_settings, from_=-20, to=20, number_of_steps=40, command=self.update_pitch_label)
+        self.slider_pitch.set(saved_pitch)
+        self.slider_pitch.grid(row=1, column=2, padx=15, pady=(0, 15), sticky="ew")
+
+        # 3. Action Area
+        self.frame_actions = ctk.CTkFrame(self.main_frame)
+        self.frame_actions.grid(row=2, column=0, sticky="ew", pady=(0, 15))
+        self.frame_actions.grid_columnconfigure(0, weight=1)
+
+        self.btn_process = ctk.CTkButton(self.frame_actions, text="Procesar y Generar Audio", command=self.start_pipeline, height=50, font=ctk.CTkFont(size=16, weight="bold"), fg_color="#1E88E5", hover_color="#1565C0")
+        self.btn_process.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
+
+        self.btn_cancel = ctk.CTkButton(self.frame_actions, text="Cancelar", command=self.stop_process, height=50, fg_color="#D32F2F", hover_color="#C62828", state="disabled")
+        self.btn_cancel.grid(row=0, column=1, padx=(0,15), pady=15, sticky="ew")
+        self.frame_actions.grid_columnconfigure(1, weight=0) # Cancel button smaller if desired, or equal
+        
+        self.progress_bar = ctk.CTkProgressBar(self.frame_actions)
+        self.progress_bar.grid(row=1, column=0, columnspan=2, padx=15, pady=(0, 15), sticky="ew")
+        self.progress_bar.set(0)
+        
+        self.lbl_progress = ctk.CTkLabel(self.frame_actions, text="Listo", text_color="gray")
+        self.lbl_progress.grid(row=2, column=0, columnspan=2, padx=15, pady=(0, 15))
+
+        # 4. Final Actions (Merge/Open)
+        self.frame_final = ctk.CTkFrame(self.main_frame)
+        self.frame_final.grid(row=3, column=0, sticky="ew", pady=(0, 15))
+        self.frame_final.grid_columnconfigure((0, 1, 2), weight=1)
+
+        self.btn_open_folder = ctk.CTkButton(self.frame_final, text="Abrir Carpeta", command=self.open_output_folder, state="disabled", fg_color="transparent", border_width=1)
+        self.btn_open_folder.grid(row=0, column=0, padx=15, pady=15, sticky="ew")
+        
+        self.btn_merge = ctk.CTkButton(self.frame_final, text="Unir Todo (MP3 Final)", command=self.start_merge_thread, state="disabled", fg_color="#43A047", hover_color="#2E7D32")
+        self.btn_merge.grid(row=0, column=1, padx=15, pady=15, sticky="ew")
+
+        self.btn_play = ctk.CTkButton(self.frame_final, text="Reproducir 🎵", command=self.play_audio, state="disabled", fg_color="#F57F17", hover_color="#F9A825")
+        self.btn_play.grid(row=0, column=2, padx=15, pady=15, sticky="ew")
+
+        # 5. Console/Log
+        self.textbox_log = ctk.CTkTextbox(self.main_frame, height=150)
+        self.textbox_log.grid(row=4, column=0, sticky="nsew")
+        self.textbox_log.configure(state="disabled") # Initial state
+        
+        # Link Journal with Thread-Safe Callback
+        self.journal.set_callback(self.thread_safe_log)
+        self.journal.info("Aplicación iniciada. Motor: Edge TTS.")
+
+    def thread_safe_log(self, message):
+        """Appends log message safely from any thread."""
+        self.after(0, lambda: self._append_to_log(message))
+
+    def _append_to_log(self, message):
         try:
-            self.journal.info("Iniciando extracción de texto...")
+            self.textbox_log.configure(state="normal")
+            self.textbox_log.insert("end", message)
+            self.textbox_log.see("end")
+            self.textbox_log.configure(state="disabled")
+        except:
+            pass
+
+    # --- UX & Settings ---
+    def save_settings(self, _=None):
+        self.config.set("voice", self.voice_var.get())
+        self.config.set("rate", self.slider_rate.get())
+        self.config.set("pitch", self.slider_pitch.get())
+
+    def update_rate_label(self, value):
+        self.lbl_rate.configure(text=f"Velocidad: {int(value)}%")
+        self.save_settings() # Auto-save on slide end
+    
+    def update_pitch_label(self, value):
+        self.lbl_pitch.configure(text=f"Tono: {int(value)}Hz")
+        self.save_settings()
+
+    def get_voice_id(self):
+        map = {
+            "Jorge (México)": "es-MX-JorgeNeural",
+            "Lorenzo (Chile)": "es-CL-LorenzoNeural",
+            "Dalia (México)": "es-MX-DaliaNeural",
+            "Alvaro (España)": "es-ES-AlvaroNeural"
+        }
+        return map.get(self.voice_var.get(), "es-MX-JorgeNeural")
+
+    def get_rate_str(self):
+        val = int(self.slider_rate.get())
+        prefix = "+" if val >= 0 else ""
+        return f"{prefix}{val}%"
+        
+    def get_pitch_str(self):
+        val = int(self.slider_pitch.get())
+        prefix = "+" if val >= 0 else ""
+        return f"{prefix}{val}Hz"
+
+    # --- Loop Control ---
+    def stop_process(self):
+        if self.is_running:
+             self.is_running = False
+             self.journal.warning("Cancelando proceso...")
+             self.btn_cancel.configure(state="disabled")
+
+    # --- Logic ---
+    def load_pdf(self):
+        filepath = filedialog.askopenfilename(filetypes=[("Archivos PDF", "*.pdf")])
+        if not filepath: return
+
+        self.current_pdf_path = filepath
+        self.extracted_text = None
+        self.output_chunks_dir = None
+        self.final_mp3_path = None
+        
+        self.lbl_file_info.configure(text=os.path.basename(filepath), text_color="#E0E0E0")
+        self.journal.info(f"PDF Cargado: {filepath}")
+        
+        # Reset
+        self.btn_process.configure(state="normal")
+        self.btn_merge.configure(state="disabled")
+        self.btn_open_folder.configure(state="disabled")
+        self.btn_play.configure(state="disabled")
+
+    def start_pipeline(self):
+        if not self.current_pdf_path: return
+        self.is_running = True
+        self.btn_process.configure(state="disabled")
+        self.btn_cancel.configure(state="normal") # Enable Cancel
+        self.progress_bar.set(0)
+        self.lbl_progress.configure(text="Procesando texto...")
+        
+        threading.Thread(target=self.run_process, daemon=True).start()
+
+    def run_process(self):
+        try:
+            # 1. Extract
+            if not self.is_running: return # Check cancel
+            self.journal.info("Extrayendo texto...")
             raw_text, metadata = pdf_extractor.extract_text(self.current_pdf_path)
-            
-            if not metadata['success']:
-                raise Exception(metadata.get('error', 'Error desconocido'))
-            if not raw_text or not raw_text.strip():
-                raise Exception("PDF vacío o escaneado.")
-                
-            self.journal.info(f"[EXTRACT] Extracción ok. {metadata['num_pages']} págs.")
             
             clean_text = text_preprocessor.preprocess(raw_text)
             self.extracted_text = clean_text
+            
+            # Update info (UI needs after)
             word_count = len(clean_text.split())
+            self.after(0, lambda: self.lbl_stats.configure(text=f"Páginas: {metadata['num_pages']} | Palabras: {word_count}"))
             
-            self.journal.info(f"[PREPROCESS] Normalizado: {word_count} palabras.")
-            
-            self.root.after(0, lambda: self.finish_processing(True, metadata['num_pages'], word_count))
-            
-        except Exception as e:
-            self.journal.error(f"Error Proc: {str(e)}")
-            self.root.after(0, lambda: self.finish_processing(False))
-            self.root.after(0, lambda: messagebox.showerror("Error", str(e)))
-
-    def finish_processing(self, success, pages=0, words=0):
-        self.toggle_inputs(True)
-        if success:
-            self.lbl_stats.config(text=f"Páginas: {pages} | Palabras: {words}")
-            self.btn_tts.config(state=tk.NORMAL)
-            self.lbl_status.config(text="Texto listo. Puede generar audio.", fg="green")
-        else:
-            self.lbl_status.config(text="Error en procesamiento.", fg="red")
-
-    def start_tts_thread(self):
-        if not self.extracted_text:
-            return
-        self.toggle_inputs(False)
-        self.lbl_status.config(text="Generando Audios...", fg="blue")
-        threading.Thread(target=self.generate_audio, daemon=True).start()
-
-    def generate_audio(self):
-        try:
+            # 2. TTS
+            if not self.is_running: return 
+            self.after(0, lambda: self.lbl_progress.configure(text="Generando audio..."))
             chunks = chunker.chunk_text(self.extracted_text)
-            total_chunks = len(chunks)
-            
-            if total_chunks == 0:
-                raise Exception("No hay bloques de texto.")
+            total = len(chunks)
+            if total == 0: raise Exception("No text chunks found")
 
             self.output_chunks_dir = output_manager.prepare_output_structure(self.current_pdf_path)
-            engine = tts_engine.TTSEngine()
+            # Pass the thread-safe logger to the engine so traces appear in GUI
+            engine = tts_engine.TTSEngine(log_callback=self.thread_safe_log)
+            
+            voice = self.get_voice_id()
+            rate = self.get_rate_str()
+            pitch = self.get_pitch_str()
             
             for i, chunk in enumerate(chunks):
-                index = i + 1
-                filename = output_manager.get_chunk_filename(self.output_chunks_dir, os.path.basename(self.current_pdf_path).split('.')[0], index, total_chunks)
-                
-                # Update progress
-                msg = f"Generando bloque {index}/{total_chunks}..."
-                self.journal.info(msg)
-                self.root.after(0, lambda m=msg: self.lbl_progress.config(text=m))
-                
-                engine.save_to_file(chunk, filename)
-                
-            self.journal.info(f"[TTS] Completado. {total_chunks} archivos.")
-            self.root.after(0, lambda: self.finish_tts(True))
+                if not self.is_running: 
+                    self.journal.warning("Proceso detenido por usuario.")
+                    break
 
+                idx = i+1
+                filename = output_manager.get_chunk_filename(self.output_chunks_dir, os.path.basename(self.current_pdf_path).split('.')[0], idx, total)
+                
+                msg = f"Generando {idx}/{total}"
+                self.journal.info(msg)
+                
+                engine.save_to_file(chunk, filename, voice=voice, rate=rate, pitch=pitch)
+                
+                # Update progress bar
+                progress = idx / total
+                self.after(0, lambda p=progress, m=msg: self.update_progress(p, m))
+            
+            success = self.is_running # If we broke loop because of cancel, success is False-ish in logic
+            self.after(0, lambda: self.finish_tts(success))
+            
         except Exception as e:
-            self.journal.error(f"Error TTS: {str(e)}")
-            self.root.after(0, lambda: self.finish_tts(False))
-            self.root.after(0, lambda: messagebox.showerror("Error TTS", str(e)))
+            self.journal.error(f"Error: {e}")
+            self.after(0, lambda: messagebox.showerror("Error", str(e)))
+            self.after(0, lambda: self.finish_tts(False))
+        finally:
+            self.is_running = False
+            self.after(0, lambda: self.btn_cancel.configure(state="disabled"))
+
+    def update_progress(self, val, msg):
+        self.progress_bar.set(val)
+        self.lbl_progress.configure(text=msg)
 
     def finish_tts(self, success):
-        self.toggle_inputs(True)
+        self.btn_process.configure(state="normal")
         if success:
-            self.lbl_progress.config(text="Generación Completada.")
-            self.lbl_status.config(text="Audio generado exitosamente.", fg="green")
-            self.btn_open_folder.config(state=tk.NORMAL)
-            self.btn_merge.config(state=tk.NORMAL)
+            self.lbl_progress.configure(text="Generación Completada", text_color="#66BB6A")
+            self.btn_open_folder.configure(state="normal")
+            self.btn_merge.configure(state="normal")
+            # Auto-enable merge logic could go here if requested
         else:
-            self.lbl_status.config(text="Error en generación de audio.", fg="red")
-
-    def start_merge_thread(self):
-        if not self.output_chunks_dir:
-            return
-        self.toggle_inputs(False)
-        self.lbl_status.config(text="Uniendo audios...", fg="blue")
-        threading.Thread(target=self.merge_audio, daemon=True).start()
-
-    def merge_audio(self):
-        try:
-            self.journal.info("Iniciando unión de audios...")
-            base_name = output_manager.get_base_name(self.current_pdf_path)
-            
-            # Dynamically count actual .wav files in the directory to determine total_chunks
-            wav_files = [f for f in os.listdir(self.output_chunks_dir) if f.endswith('.wav')]
-            real_total_chunks = len(wav_files)
-            
-            if real_total_chunks == 0:
-                 raise Exception("No se encontraron archivos WAV en la carpeta de fragmentos.")
-
-            final_path = wav_merger.merge_wavs(self.output_chunks_dir, base_name, real_total_chunks)
-            
-            self.journal.info(f"[MERGE] Archivo final creado: {final_path}")
-            self.root.after(0, lambda: self.finish_merge(True, final_path))
-
-        except Exception as e:
-            self.journal.error(f"Error Merge: {str(e)}")
-            self.root.after(0, lambda: self.finish_merge(False))
-            self.root.after(0, lambda: messagebox.showerror("Error Unión", str(e)))
-
-    def finish_merge(self, success, path=None):
-        self.toggle_inputs(True)
-        if success:
-            self.lbl_status.config(text="Unión completada.", fg="green")
-            self.btn_mp3.config(state=tk.NORMAL)
-            if path:
-                 messagebox.showinfo("Éxito", f"Audio unido correctamente:\n{path}")
-        else:
-            self.lbl_status.config(text="Error en unión.", fg="red")
-
-    def start_mp3_thread(self):
-        # We need the final wav path. 
-        # For simplicity, infer it or store it.
-        # Let's infer from current_pdf_path
-        if not self.current_pdf_path: return
-        
-        base_name = output_manager.get_base_name(self.current_pdf_path)
-        final_dir = output_manager.get_final_output_dir(self.current_pdf_path)
-        wav_path = os.path.join(final_dir, f"{base_name}_final.wav")
-        
-        if not os.path.exists(wav_path):
-            messagebox.showerror("Error", "No se encuentra el archivo WAV final.")
-            return
-
-        self.toggle_inputs(False)
-        self.lbl_status.config(text="Convirtiendo a MP3...", fg="blue")
-        threading.Thread(target=self.convert_mp3, args=(wav_path,), daemon=True).start()
-
-    def convert_mp3(self, wav_path):
-        try:
-            self.journal.info("Iniciando conversión a MP3...")
-            mp3_path = mp3_converter.convert_wav_to_mp3(wav_path)
-            self.journal.info(f"[MP3] Archivo creado: {mp3_path}")
-            self.root.after(0, lambda: self.finish_mp3(True, mp3_path))
-        except Exception as e:
-            self.journal.error(f"Error MP3: {str(e)}")
-            self.root.after(0, lambda: self.finish_mp3(False))
-            self.root.after(0, lambda: messagebox.showerror("Error MP3", str(e)))
-
-    def finish_mp3(self, success, path=None):
-        self.toggle_inputs(True)
-        if success:
-            self.lbl_status.config(text="Conversión MP3 completada.", fg="green")
-            if path:
-                messagebox.showinfo("Conversión Exitosa", f"MP3 guardado en:\n{path}")
-        else:
-             self.lbl_status.config(text="Error en conversión MP3.", fg="red")
+             self.lbl_progress.configure(text="Proceso Interrumpido o Error", text_color="#EF5350")
 
     def open_output_folder(self):
         if self.output_chunks_dir and os.path.exists(self.output_chunks_dir):
-            try:
-                os.startfile(self.output_chunks_dir)
-            except Exception as e:
-                self.journal.error(f"No se pudo abrir carpeta: {e}")
+            os.startfile(self.output_chunks_dir)
 
-    def toggle_inputs(self, enable):
-        state = tk.NORMAL if enable else tk.DISABLED
-        self.btn_load.config(state=state)
-        if enable:
-            self.btn_process.config(state=tk.NORMAL if self.current_pdf_path else tk.DISABLED)
-            self.btn_tts.config(state=tk.NORMAL if self.extracted_text else tk.DISABLED)
-            self.btn_open_folder.config(state=tk.NORMAL if self.output_chunks_dir else tk.DISABLED)
-            # Enable merge if chunks exist
-            self.btn_merge.config(state=tk.NORMAL if self.output_chunks_dir else tk.DISABLED)
-            # Enable mp3 if final wav exists (simplified check, maybe relax or check file)
-             # For now, keep disabled until merge explicit success or check file existence
-            self.btn_mp3.config(state=tk.NORMAL if self.output_chunks_dir else tk.DISABLED) # Simplified
-        else:
-            self.btn_process.config(state=tk.DISABLED)
-            self.btn_tts.config(state=tk.DISABLED)
-            self.btn_open_folder.config(state=tk.DISABLED)
-            self.btn_merge.config(state=tk.DISABLED)
-            self.btn_mp3.config(state=tk.DISABLED)
+    def start_merge_thread(self):
+        self.is_running = True
+        self.btn_merge.configure(state="disabled")
+        threading.Thread(target=self.run_merge, daemon=True).start()
+
+    def run_merge(self):
+        try:
+            self.after(0, lambda: self.lbl_progress.configure(text="Uniendo archivos..."))
+            base_name = output_manager.get_base_name(self.current_pdf_path)
+            wav_files = [f for f in os.listdir(self.output_chunks_dir) if f.endswith('.wav')]
+            count = len(wav_files)
+            
+            final_path = wav_merger.merge_wavs(self.output_chunks_dir, base_name, count)
+            
+            # Convert to MP3
+            self.journal.info("Convirtiendo a MP3...")
+            self.final_mp3_path = mp3_converter.convert_wav_to_mp3(final_path)
+            
+            self.journal.info(f"Finalizado: {self.final_mp3_path}")
+            
+            self.after(0, lambda: self.finish_merge(True))
+            
+        except Exception as e:
+             self.journal.error(f"Merge Error: {e}")
+             self.after(0, lambda: self.finish_merge(False))
+        finally:
+             self.is_running = False
+
+    def finish_merge(self, success):
+         self.btn_merge.configure(state="normal")
+         if success:
+             messagebox.showinfo("Éxito", f"Audio creado:\n{self.final_mp3_path}")
+             self.lbl_progress.configure(text="Proceso Finalizado")
+             self.btn_play.configure(state="normal")
+
+    def play_audio(self):
+        if self.final_mp3_path and os.path.exists(self.final_mp3_path):
+            self.journal.info("Reproduciendo audio...")
+            os.startfile(self.final_mp3_path)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = AntigravityApp(root)
-    root.mainloop()
+    app = AntigravityApp()
+    app.mainloop()

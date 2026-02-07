@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "TTS Open Source"
-#define MyAppVersion "1.1"
+#define MyAppVersion "1.2"
 #define MyAppPublisher "Restteach"
 #define MyAppURL "https://www.example.com/"
 #define MyAppExeName "TTS_Narrador_Pro.exe"
@@ -14,7 +14,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E4AD1671-2F4F-4407-AC8C-B6D2874BD39F}
+AppId={{CFB96CFC-7D35-46B2-9155-0E48EBD89F1F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}

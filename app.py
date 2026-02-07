@@ -19,6 +19,7 @@ from services import output_manager
 from services import tts_engine
 from services import wav_merger
 from services import mp3_converter
+from services import audio_mixer
 from services.config_manager import ConfigManager
 
 # --- Configuration & Theme ---
@@ -41,6 +42,12 @@ class AntigravityApp(ctk.CTk):
         self.extracted_text = None
         self.output_chunks_dir = None
         self.final_mp3_path = None
+        
+        # Audio Mixer State
+        self.bgm_path = None
+        self.voice_vol = 1.0
+        self.bgm_vol = 0.2
+        
         self.is_running = False # Flag for cancellation
         
         # Grid Layout
@@ -71,7 +78,37 @@ class AntigravityApp(ctk.CTk):
             text_color="#1f538d", # Color azul profesional
             cursor="hand2"        # Cambia el cursor al pasar el mouse
         )
-        self.github_link.grid(row=3, column=0, padx=20, pady=10)
+        self.github_link.grid(row=6, column=0, padx=20, pady=10)
+        
+        # --- Audio Mixer Controls ---
+        self.lbl_mixer = ctk.CTkLabel(self.sidebar_frame, text="Mezcla de Audio", font=ctk.CTkFont(size=14, weight="bold"))
+        self.lbl_mixer.grid(row=2, column=0, padx=20, pady=(10, 5))
+        
+        self.btn_bgm = ctk.CTkButton(self.sidebar_frame, text="Cargar Música (Opcional)", command=self.load_bgm, height=30, fg_color="#5D4037", hover_color="#4E342E")
+        self.btn_bgm.grid(row=3, column=0, padx=20, pady=5)
+
+        self.lbl_bgm_info = ctk.CTkLabel(self.sidebar_frame, text="Sin música", text_color="gray", font=ctk.CTkFont(size=10))
+        self.lbl_bgm_info.grid(row=4, column=0, padx=20, pady=(0, 10))
+
+        # Sliders
+        self.lbl_v_vol = ctk.CTkLabel(self.sidebar_frame, text=f"Vol. Voz: {int(self.voice_vol*100)}%", font=ctk.CTkFont(size=11))
+        self.lbl_v_vol.grid(row=5, column=0, padx=20, sticky="w")
+        
+        self.slider_v_vol = ctk.CTkSlider(self.sidebar_frame, from_=0.0, to=2.0, number_of_steps=20, command=self.update_vol_labels)
+        self.slider_v_vol.set(self.voice_vol)
+        self.slider_v_vol.grid(row=6, column=0, padx=20, pady=(0, 5))
+        
+        self.lbl_b_vol = ctk.CTkLabel(self.sidebar_frame, text=f"Vol. Música: {int(self.bgm_vol*100)}%", font=ctk.CTkFont(size=11))
+        self.lbl_b_vol.grid(row=7, column=0, padx=20, sticky="w")
+        
+        self.slider_b_vol = ctk.CTkSlider(self.sidebar_frame, from_=0.0, to=1.0, number_of_steps=10, command=self.update_vol_labels)
+        self.slider_b_vol.set(self.bgm_vol)
+        self.slider_b_vol.grid(row=8, column=0, padx=20, pady=(0, 15))
+
+        # Adjust grid rows
+        # Logo: 0, Version: 1, Mixer: 2, Btn: 3, Info: 4, VLab: 5, VSlid: 6, BLab: 7, BSlid: 8
+        # GitHub: 9
+        self.github_link.grid(row=9, column=0, padx=20, pady=20)
         
         # Vincular el clic al navegador
         self.github_link.bind("<Button-1>", lambda e: open_github())
@@ -224,6 +261,23 @@ class AntigravityApp(ctk.CTk):
              self.journal.warning("Cancelando proceso...")
              self.btn_cancel.configure(state="disabled")
 
+    def load_bgm(self):
+        filepath = filedialog.askopenfilename(filetypes=[("Audio Files", "*.mp3;*.wav")])
+        if filepath:
+            self.bgm_path = filepath
+            self.lbl_bgm_info.configure(text=os.path.basename(filepath)[:20]+"...")
+            self.journal.info(f"Música de fondo cargada: {filepath}")
+        else:
+            self.bgm_path = None
+            self.lbl_bgm_info.configure(text="Sin música")
+
+    def update_vol_labels(self, _=None):
+        self.voice_vol = self.slider_v_vol.get()
+        self.bgm_vol = self.slider_b_vol.get()
+        self.lbl_v_vol.configure(text=f"Vol. Voz: {int(self.voice_vol*100)}%")
+        self.lbl_b_vol.configure(text=f"Vol. Música: {int(self.bgm_vol*100)}%")
+
+
     # --- Logic ---
     def load_pdf(self):
         filepath = filedialog.askopenfilename(filetypes=[("Archivos PDF", "*.pdf")])
@@ -341,6 +395,26 @@ class AntigravityApp(ctk.CTk):
             count = len(wav_files)
             
             final_path = wav_merger.merge_wavs(self.output_chunks_dir, base_name, count)
+            
+            # --- Audio Mixing (Optional) ---
+            if self.bgm_path and os.path.exists(self.bgm_path):
+                self.journal.info("Mezclando con música de fondo...")
+                mixed_path = final_path.replace("_final.wav", "_mixed.wav")
+                try:
+                    audio_mixer.mix_audio(
+                        voice_path=final_path,
+                        bgm_path=self.bgm_path,
+                        output_path=mixed_path,
+                        voice_vol=self.voice_vol,
+                        bgm_vol=self.bgm_vol
+                    )
+                    final_path = mixed_path # Update flow to use mixed file
+                    self.journal.info("Mezcla completada.")
+                except Exception as e:
+                    self.journal.error(f"Error en mezcla: {e}")
+                    # Continue without mixing if fails? Or stop? 
+                    # Let's fail safe: continue with original
+                    self.journal.warning("Se usará el audio sin música.")
             
             # Convert to MP3
             self.journal.info("Convirtiendo a MP3...")

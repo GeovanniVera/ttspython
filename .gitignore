@@ -34,3 +34,4 @@ dist/
 
 # Runtime Config
 settings.json
+.cache

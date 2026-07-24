@@ -19,6 +19,7 @@ class ProcessPdfToSpeechUseCase:
         generator: SpeechGeneratorPort,
         processor: AudioProcessorPort,
         text_service: TextService,
+        cache_repo=None,
         journal: Optional[JournalAdapter] = None,
         max_workers: int = 4
     ):
@@ -26,6 +27,7 @@ class ProcessPdfToSpeechUseCase:
         self.generator = generator
         self.processor = processor
         self.text_service = text_service
+        self.cache_repo = cache_repo
         self.journal = journal
         self.max_workers = max_workers
 
@@ -101,19 +103,50 @@ class ProcessPdfToSpeechUseCase:
                 project.generated_files.append(chunk_path)
 
             completed_count = 0
+            cache_hits = 0
+            cache_misses = 0
             start_time = time.time()
             
             def process_chunk(chunk_data):
                 idx, chunk_text, path = chunk_data
                 check_cancel()
+                
+                # Check cache first
+                cached_path = None
+                if self.cache_repo:
+                    cached_path = self.cache_repo.get_audio(
+                        chunk_text, voice_settings.voice_id,
+                        voice_settings.rate, voice_settings.pitch
+                    )
+                
+                if cached_path:
+                    shutil.copy2(cached_path, path)
+                    return idx, "hit"
+                
+                # Cache MISS — generate via TTS
                 self.generator.generate_speech(chunk_text, path, voice_settings)
-                return idx
+                
+                # Save to cache
+                if self.cache_repo:
+                    try:
+                        self.cache_repo.save_audio(
+                            chunk_text, voice_settings.voice_id,
+                            voice_settings.rate, voice_settings.pitch, path
+                        )
+                    except Exception:
+                        pass
+                
+                return idx, "miss"
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 futures = {executor.submit(process_chunk, t): t[0] for t in chunk_tasks}
                 for future in concurrent.futures.as_completed(futures):
                     check_cancel()
-                    future.result()
+                    idx, cache_status = future.result()
+                    if cache_status == "hit":
+                        cache_hits += 1
+                    else:
+                        cache_misses += 1
                     completed_count += 1
                     
                     elapsed = time.time() - start_time
@@ -124,6 +157,8 @@ class ProcessPdfToSpeechUseCase:
                         progress = 0.15 + (0.6 * (completed_count / total_chunks))
                         msg = f"Generando: {completed_count}/{total_chunks} - ETA: {eta}s"
                         progress_callback(msg, progress)
+
+            self._log(f"Cache: {cache_hits}/{total_chunks} chunks reutilizados, {cache_misses} generados")
 
             check_cancel()
             project.generated_files.sort()
@@ -148,7 +183,6 @@ class ProcessPdfToSpeechUseCase:
 
         except InterruptedError: return None
         except Exception as e:
-            self._log(f"Error en el pipeline: {str(e)}", "ERROR")
             raise e
         finally:
             self._log("Limpiando archivos temporales...")

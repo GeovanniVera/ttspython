@@ -1,4 +1,6 @@
 import os
+import platform
+import subprocess
 import sys
 from pathlib import Path
 
@@ -51,6 +53,47 @@ class EnvManager:
         """Devuelve la ruta al archivo de icono si existe."""
         icon_path = self.root / "app.ico"
         return str(icon_path) if icon_path.exists() else None
+
+    def get_icon_path_for_platform(self):
+        """Returns the appropriate icon path for the current platform."""
+        import platform as _platform
+        system = _platform.system()
+
+        if system == "Windows":
+            ico_path = self.root / "app.ico"
+            return str(ico_path) if ico_path.exists() else None
+
+        # Linux / macOS need PNG for iconphoto()
+        png_path = self.root / "app.png"
+        if not png_path.exists():
+            ico_path = self.root / "app.ico"
+            if ico_path.exists():
+                try:
+                    from PIL import Image
+                    img = Image.open(str(ico_path))
+                    img.save(str(png_path), "PNG")
+                except Exception:
+                    return None
+
+        return str(png_path) if png_path.exists() else None
+
+
+def open_path(path: str) -> None:
+    """Opens a file or folder with the default system application."""
+    system = platform.system()
+    try:
+        if system == "Windows":
+            os.startfile(path)
+        elif system == "Darwin":
+            subprocess.run(["open", path], check=False)
+        else:
+            subprocess.run(["xdg-open", path], check=False)
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"No se encontró el explorador de archivos del sistema ({system}). "
+            "Instale xdg-utils (Linux) o verifique la configuración."
+        )
+
 
 # Instancia única para todo el sistema
 env_manager = EnvManager()

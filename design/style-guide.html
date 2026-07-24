@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>PDF To Speech Studio — Guía de Estilos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ===== INK (dark / default) ===== */
+    --ink-950:#12141A;
+    --ink-900:#1A1D26;
+    --ink-800:#242835;
+    --ink-700:#333849;
+    --ink-600:#454C61;
+    --text-100:#ECEAE4;
+    --text-400:#9498A3;
+
+    /* ===== PAPER (light) ===== */
+    --paper-50:#F6F3EC;
+    --paper-100:#EDE8DD;
+    --paper-200:#DDD6C5;
+    --paper-ink-900:#211E19;
+    --paper-ink-400:#7A7364;
+
+    /* ===== ACCENTS (identity — used across both modes) ===== */
+    --copper-300:#EFAD82;
+    --copper-400:#E2925B;
+    --copper-500:#C97740;
+    --teal-400:#4FA8A0;
+    --teal-500:#3D8C85;
+
+    /* ===== SEMANTIC / FUNCTIONAL ===== */
+    --signal-green:#3FAE6A;
+    --signal-green-hover:#4CC17C;
+    --signal-red:#C4453A;
+    --signal-red-hover:#D65B4F;
+    --signal-amber:#D98A3D;
+    --signal-amber-hover:#E6A15C;
+
+    /* ===== SPACING SCALE ===== */
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
+    --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px;
+
+    /* ===== RADIUS ===== */
+    --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+
+    /* ===== ELEVATION ===== */
+    --shadow-card: 0 1px 2px rgba(0,0,0,.24), 0 8px 24px -8px rgba(0,0,0,.35);
+    --shadow-pop: 0 2px 6px rgba(0,0,0,.3), 0 16px 40px -12px rgba(0,0,0,.5);
+
+    --font-display: "Source Serif 4", Georgia, serif;
+    --font-ui: "Inter", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", "Consolas", monospace;
+  }
+
+  [data-theme="dark"]{
+    --bg-base: var(--ink-950);
+    --bg-panel: var(--ink-900);
+    --bg-card: var(--ink-800);
+    --border: var(--ink-700);
+    --border-soft: var(--ink-600);
+    --text-primary: var(--text-100);
+    --text-secondary: var(--text-400);
+  }
+  [data-theme="light"]{
+    --bg-base: var(--paper-50);
+    --bg-panel: var(--paper-100);
+    --bg-card: #FFFFFF;
+    --border: var(--paper-200);
+    --border-soft: #C9C1AC;
+    --text-primary: var(--paper-ink-900);
+    --text-secondary: var(--paper-ink-400);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg-base); color:var(--text-primary);
+    font-family:var(--font-ui); transition:background .25s ease, color .25s ease;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:var(--sp-10) var(--sp-6) 120px;}
+
+  /* ---- Header ---- */
+  .guide-header{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-6); margin-bottom:var(--sp-10);}
+  .eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--copper-400); margin:0 0 var(--sp-2);}
+  h1.wordmark{font-family:var(--font-display); font-weight:700; font-size:42px; margin:0; letter-spacing:-.01em;}
+  .subtitle{color:var(--text-secondary); font-size:15px; max-width:520px; margin-top:var(--sp-2); line-height:1.5;}
+
+  .theme-toggle{
+    display:flex; align-items:center; gap:var(--sp-2); background:var(--bg-card);
+    border:1px solid var(--border); padding:var(--sp-2) var(--sp-4); border-radius:var(--r-pill);
+    cursor:pointer; font-size:13px; font-weight:500; user-select:none; box-shadow:var(--shadow-card);
+    white-space:nowrap;
+  }
+  .theme-toggle .dot{width:10px;height:10px;border-radius:50%;background:var(--copper-400);}
+
+  /* ---- Waveform seam (signature element) ---- */
+  .seam{display:flex; align-items:flex-end; gap:3px; height:22px; margin:var(--sp-8) 0;}
+  .seam i{display:block; width:3px; border-radius:2px; background:linear-gradient(180deg, var(--copper-300), var(--copper-500)); opacity:.85;}
+
+  section{margin-bottom:var(--sp-10);}
+  .section-head{display:flex; align-items:baseline; gap:var(--sp-3); margin-bottom:var(--sp-5);}
+  .section-num{font-family:var(--font-mono); font-size:12px; color:var(--text-secondary);}
+  h2{font-family:var(--font-display); font-size:24px; margin:0; font-weight:600;}
+  p.desc{color:var(--text-secondary); font-size:14px; line-height:1.6; max-width:640px; margin:0 0 var(--sp-5);}
+
+  /* ---- Color swatches ---- */
+  .swatch-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:var(--sp-4);}
+  .swatch{border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; background:var(--bg-card); box-shadow:var(--shadow-card);}
+  .swatch .fill{height:64px;}
+  .swatch .info{padding:var(--sp-3);}
+  .swatch .name{font-size:12.5px; font-weight:600;}
+  .swatch .hex{font-family:var(--font-mono); font-size:11px; color:var(--text-secondary); margin-top:2px;}
+
+  /* ---- Type specimens ---- */
+  .type-row{display:flex; align-items:baseline; gap:var(--sp-6); padding:var(--sp-5) 0; border-bottom:1px solid var(--border);}
+  .type-row:last-child{border-bottom:none;}
+  .type-meta{width:190px; flex-shrink:0; font-family:var(--font-mono); font-size:11px; color:var(--text-secondary); line-height:1.6;}
+  .type-meta b{display:block; color:var(--text-primary); font-family:var(--font-ui); font-size:13px; font-weight:600; margin-bottom:2px;}
+  .specimen-display{font-family:var(--font-display); font-weight:700; font-size:32px;}
+  .specimen-ui-lg{font-family:var(--font-ui); font-weight:600; font-size:16px;}
+  .specimen-ui{font-family:var(--font-ui); font-weight:500; font-size:14px;}
+  .specimen-ui-sm{font-family:var(--font-ui); font-weight:500; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--text-secondary);}
+  .specimen-mono{font-family:var(--font-mono); font-size:13px;}
+
+  /* ---- Component canvas ---- */
+  .canvas{background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-6); display:flex; flex-wrap:wrap; gap:var(--sp-5); align-items:center;}
+  .canvas.col{flex-direction:column; align-items:stretch;}
+  .label-tag{font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary); margin-bottom:var(--sp-2); display:block;}
+
+  /* Buttons — esquinas rectas, semántica de color mínima, barrido circular tipo "botón de consola" */
+  .btn{
+    position:relative; overflow:hidden; isolation:isolate;
+    display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2);
+    font-family:var(--font-ui); font-weight:600; font-size:13.5px; letter-spacing:.01em;
+    border:none; border-radius:0; padding:11px 22px; cursor:pointer;
+    box-shadow:5px 5px 10px rgba(0,0,0,.18);
+    transition:transform .18s ease;
+  }
+  .btn .ico{position:relative; z-index:2; width:16px; height:16px; flex-shrink:0; display:flex;}
+  .btn .ico svg{width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .btn .lbl{position:relative; z-index:2;}
+  .btn::before{
+    content:""; position:absolute; z-index:1; left:-10%; top:50%; width:44px; height:44px;
+    background:#fff; border-radius:50%; transform:translate(0,-50%);
+    mix-blend-mode:difference; pointer-events:none;
+    transition:transform .4s cubic-bezier(.16,.84,.24,1), border-radius .4s ease;
+  }
+  .btn:hover::before{transform:translate(420%,-50%); border-radius:0;}
+  .btn:active{transform:translate(5px,5px); box-shadow:none;}
+  .btn:disabled{opacity:.4; cursor:not-allowed; pointer-events:none;}
+
+  /* Solo 3 variantes — el color siempre significa lo mismo en toda la app */
+  .btn-primary{background:var(--signal-green); color:#0C1F14;}   /* únicamente: Iniciar Proceso */
+  .btn-danger{background:var(--signal-red); color:#2B0A08;}      /* únicamente: Detener / Limpiar Cache / Cancelar */
+  .btn-copper{background:var(--copper-400); color:#2B1608;}      /* todo lo demás: Escuchar, Cargar Archivo, Destino, Cargar Música */
+
+  /* Toggle switch */
+  .switch{display:inline-flex; align-items:center; gap:var(--sp-3); cursor:pointer;}
+  .switch .track{width:42px; height:24px; border-radius:var(--r-pill); background:var(--ink-700); position:relative; transition:background .18s;}
+  [data-theme="light"] .switch .track{background:#D7CFBB;}
+  .switch .track::after{content:""; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:3px; left:3px; transition:left .18s; box-shadow:0 1px 3px rgba(0,0,0,.4);}
+  .switch.on .track{background:var(--copper-400);}
+  .switch.on .track::after{left:21px;}
+  .switch .switch-label{font-size:13px; font-weight:500;}
+
+  /* Slider (fader) */
+  .fader{width:100%;}
+  .fader .fhead{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:var(--sp-2); font-weight:500;}
+  .fader .fhead .val{font-family:var(--font-mono); color:var(--copper-400);}
+  input[type=range]{-webkit-appearance:none; width:100%; height:4px; border-radius:2px; background:var(--border-soft); outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--copper-400); cursor:pointer; border:3px solid var(--bg-panel); box-shadow:0 0 0 1px var(--copper-500);}
+  input[type=range]::-webkit-slider-thumb:hover{background:var(--copper-300);}
+  input[type=range].teal::-webkit-slider-thumb{background:var(--teal-400); box-shadow:0 0 0 1px var(--teal-500);}
+
+  /* Combo / select */
+  .select-wrap{position:relative; display:inline-block;}
+  select.combo{appearance:none; font-family:var(--font-ui); font-size:13.5px; font-weight:500; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-soft); border-radius:var(--r-md); padding:11px 36px 11px 14px; cursor:pointer;}
+  .select-wrap::after{content:"⌄"; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text-secondary); pointer-events:none;}
+
+  /* Card */
+  .card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-5); box-shadow:var(--shadow-card);}
+  .card h3{font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin:0 0 var(--sp-4); font-weight:600;}
+
+  /* Waveform meter (progress) */
+  .meter{display:flex; align-items:center; gap:2px; height:28px; padding:0 var(--sp-2); background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-sm); overflow:hidden;}
+  .meter i{flex:1; border-radius:2px; background:var(--border-soft); align-self:center;}
+  .meter i.active{background:linear-gradient(180deg, var(--copper-300), var(--signal-green));}
+  @keyframes bounce{0%,100%{height:20%;}50%{height:85%;}}
+
+  /* Log console */
+  .console{background:var(--ink-950); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--sp-4); font-family:var(--font-mono); font-size:12.5px; line-height:1.9;}
+  [data-theme="light"] .console{background:#1D2028;}
+  .console .t{color:#6B7280;}
+  .lvl-info{color:#5AA9E6;}
+  .lvl-warn{color:var(--signal-amber);}
+  .lvl-err{color:#EF6E63;}
+  .lvl-ok{color:var(--signal-green);}
+
+  table.handoff{width:100%; border-collapse:collapse; font-size:13px;}
+  table.handoff th{text-align:left; font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-secondary); padding:var(--sp-2) var(--sp-3); border-bottom:1px solid var(--border);}
+  table.handoff td{padding:var(--sp-3); border-bottom:1px solid var(--border); vertical-align:top;}
+  table.handoff code{font-family:var(--font-mono); background:var(--bg-card); padding:2px 6px; border-radius:4px; font-size:12px;}
+  .swab{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; border:1px solid rgba(128,128,128,.3);}
+
+  .note{background:var(--bg-card); border-left:3px solid var(--copper-400); border-radius:0 var(--r-sm) var(--r-sm) 0; padding:var(--sp-4) var(--sp-5); font-size:13.5px; line-height:1.6; color:var(--text-secondary);}
+  .note b{color:var(--text-primary);}
+</style>
+</head>
+<body data-theme="dark">
+<div class="wrap">
+
+  <div class="guide-header">
+    <div>
+      <p class="eyebrow">Guía de estilos — v1</p>
+      <h1 class="wordmark">Studio PDF</h1>
+      <p class="subtitle">Sistema de diseño para la migración a PySide6. De la página impresa a la voz — una consola de estudio para narrar documentos.</p>
+    </div>
+    <div class="theme-toggle" id="themeToggle">
+      <span class="dot" id="themeDot"></span>
+      <span id="themeLabel">Modo Oscuro</span>
+    </div>
+  </div>
+
+  <div class="seam" id="seamTop"></div>
+
+  <!-- 00 CONCEPT -->
+  <section>
+    <div class="section-head"><span class="section-num">00</span><h2>Concepto</h2></div>
+    <p class="desc">
+      El producto convierte texto en voz — la metáfora rectora es una <b style="color:var(--text-primary)">consola de estudio de grabación</b>:
+      tonos tinta profunda como el rack de un mezclador, un acento cobre cálido como la luz de un VU-meter analógico, y un elemento de firma —
+      el <b style="color:var(--text-primary)">"seam" de forma de onda</b> — que aparece en divisores, en el medidor de progreso y junto al botón de escucha,
+      recordando en todo momento que el texto se está volviendo sonido. El verde/rojo/ámbar se reservan exclusivamente para estados funcionales
+      (iniciar / detener / previsualizar), tal como las luces de una consola real — nunca se usan como color decorativo.
+    </p>
+  </section>
+
+  <!-- 01 COLOR -->
+  <section>
+    <div class="section-head"><span class="section-num">01</span><h2>Color</h2></div>
+    <p class="desc">Paleta "Ink" (oscuro, default) y "Paper" (claro) comparten los mismos acentos de identidad y de estado — solo cambian las superficies.</p>
+
+    <p class="specimen-ui-sm" style="margin-bottom:12px;">Superficies — Ink / Paper</p>
+    <div class="swatch-grid" style="margin-bottom:28px;">
+      <div class="swatch"><div class="fill" style="background:#12141A"></div><div class="info"><div class="name">ink-950 · base</div><div class="hex">#12141A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#1A1D26"></div><div class="info"><div class="name">ink-900 · panel</div><div class="hex">#1A1D26</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#242835"></div><div class="info"><div class="name">ink-800 · card</div><div class="hex">#242835</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#333849"></div><div class="info"><div class="name">ink-700 · border</div><div class="hex">#333849</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#F6F3EC"></div><div class="info"><div class="name">paper-50 · base</div><div class="hex">#F6F3EC</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#EDE8DD"></div><div class="info"><div class="name">paper-100 · panel</div><div class="hex">#EDE8DD</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#FFFFFF; border-bottom:1px solid #eee"></div><div class="info"><div class="name">white · card</div><div class="hex">#FFFFFF</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#DDD6C5"></div><div class="info"><div class="name">paper-200 · border</div><div class="hex">#DDD6C5</div></div></div>
+    </div>
+
+    <p class="specimen-ui-sm" style="margin-bottom:12px;">Acentos de identidad</p>
+    <div class="swatch-grid" style="margin-bottom:28px;">
+      <div class="swatch"><div class="fill" style="background:#E2925B"></div><div class="info"><div class="name">copper-400 · marca</div><div class="hex">#E2925B</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#EFAD82"></div><div class="info"><div class="name">copper-300 · hover</div><div class="hex">#EFAD82</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#4FA8A0"></div><div class="info"><div class="name">teal-400 · secundario</div><div class="hex">#4FA8A0</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#3D8C85"></div><div class="info"><div class="name">teal-500 · hover</div><div class="hex">#3D8C85</div></div></div>
+    </div>
+
+    <p class="specimen-ui-sm" style="margin-bottom:12px;">Estados funcionales (consola)</p>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:#3FAE6A"></div><div class="info"><div class="name">signal-green · iniciar</div><div class="hex">#3FAE6A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#C4453A"></div><div class="info"><div class="name">signal-red · detener</div><div class="hex">#C4453A</div></div></div>
+      <div class="swatch"><div class="fill" style="background:#D98A3D"></div><div class="info"><div class="name">signal-amber · escuchar</div><div class="hex">#D98A3D</div></div></div>
+    </div>
+  </section>
+
+  <div class="seam"><i style="height:40%"></i><i style="height:70%"></i><i style="height:30%"></i><i style="height:90%"></i><i style="height:50%"></i><i style="height:65%"></i><i style="height:20%"></i><i style="height:75%"></i></div>
+
+  <!-- 02 TYPE -->
+  <section>
+    <div class="section-head"><span class="section-num">02</span><h2>Tipografía</h2></div>
+    <p class="desc">Tres roles, sin mezclar funciones: serif para identidad de marca y títulos de sección, sans para todos los controles de UI, mono para datos y bitácora.</p>
+
+    <div class="type-row">
+      <div class="type-meta"><b>Display</b>Source Serif 4 · 700<br>Marca, títulos de sección</div>
+      <div class="specimen-display">Studio PDF</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>UI Large</b>Inter · 600 · 16px<br>Botones primarios</div>
+      <div class="specimen-ui-lg">Iniciar Proceso</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>UI Body</b>Inter · 500 · 14px<br>Labels, texto de controles</div>
+      <div class="specimen-ui">es-MX-JorgeNeural</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>UI Caption</b>Inter · 500 · 12px, mayúsculas<br>Eyebrows, secciones de sidebar</div>
+      <div class="specimen-ui-sm">Mezcla de Audio</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Mono</b>JetBrains Mono · 400 · 13px<br>Bitácora, valores numéricos</div>
+      <div class="specimen-mono">[00:15:55] [INFO] Cache: 8/12 chunks reutilizados</div>
+    </div>
+  </section>
+
+  <div class="seam" id="seamMid"></div>
+
+  <!-- 03 SPACING -->
+  <section>
+    <div class="section-head"><span class="section-num">03</span><h2>Espaciado &amp; Radio</h2></div>
+    <p class="desc">Escala de 4px. Cards siempre <code style="font-family:var(--font-mono)">r-lg</code>, controles interactivos <code style="font-family:var(--font-mono)">r-md</code>, badges/switches <code style="font-family:var(--font-mono)">r-pill</code>.</p>
+    <div class="canvas">
+      <div style="display:flex; gap:14px; align-items:flex-end;">
+        <div style="text-align:center;"><div style="width:4px;height:4px;background:var(--copper-400);margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">sp-1 · 4</span></div>
+        <div style="text-align:center;"><div style="width:8px;height:8px;background:var(--copper-400);margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">sp-2 · 8</span></div>
+        <div style="text-align:center;"><div style="width:16px;height:16px;background:var(--copper-400);margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">sp-4 · 16</span></div>
+        <div style="text-align:center;"><div style="width:24px;height:24px;background:var(--copper-400);margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">sp-6 · 24</span></div>
+        <div style="text-align:center;"><div style="width:40px;height:40px;background:var(--copper-400);margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">sp-10 · 40</span></div>
+      </div>
+      <div style="display:flex; gap:14px; align-items:flex-end;">
+        <div style="text-align:center;"><div style="width:40px;height:40px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:6px;margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">r-sm · 6</span></div>
+        <div style="text-align:center;"><div style="width:40px;height:40px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:10px;margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">r-md · 10</span></div>
+        <div style="text-align:center;"><div style="width:40px;height:40px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:14px;margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">r-lg · 14</span></div>
+        <div style="text-align:center;"><div style="width:40px;height:40px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:999px;margin:0 auto 6px;"></div><span class="specimen-mono" style="font-size:10px;">r-pill</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 BUTTONS -->
+  <section>
+    <div class="section-head"><span class="section-num">04</span><h2>Botones</h2></div>
+    <p class="desc">Semántica de consola: verde solo significa "iniciar", rojo solo "detener/destructivo", ámbar solo "previsualizar". El resto de acciones usan secundario neutro.</p>
+    <p class="desc" style="margin-top:-8px;">Solo 3 significados de color en toda la app: <b style="color:var(--signal-green)">verde</b> = iniciar, <b style="color:var(--signal-red)">rojo</b> = detener/destructivo, <b style="color:var(--copper-400)">cobre</b> = cualquier otra acción. Nada de ámbar ni secundarios sueltos.</p>
+    <div class="canvas">
+      <div><span class="label-tag">Primary — único caso de verde</span>
+        <button class="btn btn-primary">
+          <span class="lbl">Iniciar Proceso</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Danger — Detener</span>
+        <button class="btn btn-danger">
+          <span class="lbl">Detener</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Danger — Limpiar Cache</span>
+        <button class="btn btn-danger">
+          <span class="lbl">Limpiar Cache</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Danger — Cancelar</span>
+        <button class="btn btn-danger">
+          <span class="lbl">Cancelar</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Copper — Escuchar</span>
+        <button class="btn btn-copper">
+          <span class="lbl">Escuchar</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="4" height="7" rx="1.5"/><rect x="18" y="14" width="4" height="7" rx="1.5"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Copper — Cargar Archivo</span>
+        <button class="btn btn-copper">
+          <span class="lbl">Cargar Archivo</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 21h16"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Copper — Destino</span>
+        <button class="btn btn-copper">
+          <span class="lbl">Destino</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Copper — Cargar Música</span>
+        <button class="btn btn-copper">
+          <span class="lbl">Cargar Música</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span>
+        </button>
+      </div>
+      <div><span class="label-tag">Disabled</span>
+        <button class="btn btn-primary" disabled>
+          <span class="lbl">Procesando…</span>
+          <span class="ico"><svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 CONTROLS -->
+  <section>
+    <div class="section-head"><span class="section-num">05</span><h2>Controles</h2></div>
+    <p class="desc">Faders con thumb cobre para parámetros de voz; teal se reserva para faders de mezcla de audio (voz/música), diferenciando visualmente "configurar la narración" de "mezclar el resultado".</p>
+    <div class="canvas col" style="gap:22px;">
+      <div style="display:flex; gap:32px; flex-wrap:wrap;">
+        <div class="fader" style="max-width:260px;">
+          <div class="fhead"><span>Velocidad</span><span class="val">+20%</span></div>
+          <input type="range" min="-50" max="50" value="20">
+        </div>
+        <div class="fader" style="max-width:260px;">
+          <div class="fhead"><span>Voz (mezcla)</span><span class="val">100%</span></div>
+          <input type="range" class="teal" min="0" max="150" value="100">
+        </div>
+        <div class="select-wrap">
+          <span class="label-tag">Selector de voz</span><br>
+          <select class="combo"><option>es-MX-JorgeNeural</option><option>es-CL-LorenzoNeural</option></select>
+        </div>
+      </div>
+      <div style="display:flex; gap:32px; align-items:center; flex-wrap:wrap;">
+        <div class="switch on"><div class="track"></div><span class="switch-label">Modo Oscuro</span></div>
+        <div class="switch"><div class="track"></div><span class="switch-label">Edición</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 METER -->
+  <section>
+    <div class="section-head"><span class="section-num">06</span><h2>Medidor de progreso — firma</h2></div>
+    <p class="desc">
+      En vez de una barra plana, el progreso se representa como <b style="color:var(--text-primary)">barras de ecualizador</b> que se llenan de izquierda a derecha
+      a medida que se procesan los chunks — el único elemento verdaderamente distintivo de la interfaz, y el que justifica el riesgo estético:
+      conecta visualmente "convertir texto" con "producir sonido" en el lugar exacto donde el usuario espera feedback.
+    </p>
+    <div class="canvas col">
+      <span class="label-tag">Progreso — 65% (8/12 chunks)</span>
+      <div class="meter" id="meterDemo"></div>
+    </div>
+  </section>
+
+  <!-- 07 CARDS + LOG -->
+  <section>
+    <div class="section-head"><span class="section-num">07</span><h2>Cards &amp; Bitácora</h2></div>
+    <p class="desc">Toda agrupación visual usa la misma card — nunca un <code style="font-family:var(--font-mono)">QFrame</code> sin <code style="font-family:var(--font-mono)">objectName</code> ni estilo.</p>
+    <div class="canvas" style="align-items:flex-start;">
+      <div class="card" style="width:260px;">
+        <h3>Mezcla de Audio</h3>
+        <div class="fader" style="margin-bottom:16px;"><div class="fhead"><span>Voz</span><span class="val">100%</span></div><input type="range" class="teal" value="100"></div>
+        <div class="fader"><div class="fhead"><span>Música</span><span class="val">20%</span></div><input type="range" class="teal" value="20"></div>
+      </div>
+      <div class="console" style="flex:1; min-width:320px;">
+        <div><span class="t">[00:15:55]</span> <span class="lvl-ok">[OK]</span> Studio listo. Sistema responsivo activado.</div>
+        <div><span class="t">[00:16:02]</span> <span class="lvl-info">[INFO]</span> Cache: 8/12 chunks reutilizados.</div>
+        <div><span class="t">[00:16:04]</span> <span class="lvl-warn">[WARN]</span> Reintentando conexión TTS (2/3).</div>
+        <div><span class="t">[00:16:08]</span> <span class="lvl-err">[ERROR]</span> No se pudo cargar el ícono de la app.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 ENGINEERING HANDOFF -->
+  <section>
+    <div class="section-head"><span class="section-num">08</span><h2>Handoff a ingeniería</h2></div>
+    <div class="note" style="margin-bottom:20px;">
+      <b>QSS no soporta variables CSS.</b> Esta página usa <code style="font-family:var(--font-mono)">var(--token)</code> porque es HTML, pero el <code style="font-family:var(--font-mono)">theme.qss</code> real debe generarse desde un diccionario Python con estos mismos valores literales (ver plan de Fase 1), y cada <code style="font-family:var(--font-mono)">QFrame</code> que use un color de card/panel necesita <code style="font-family:var(--font-mono)">objectName</code> para que el selector QSS lo alcance.
+    </div>
+    <table class="handoff">
+      <tr><th>Token</th><th>Ink (dark)</th><th>Paper (light)</th><th>Uso</th></tr>
+      <tr><td><code>bg-base</code></td><td><span class="swab" style="background:#12141A"></span>#12141A</td><td><span class="swab" style="background:#F6F3EC"></span>#F6F3EC</td><td>Fondo de ventana</td></tr>
+      <tr><td><code>bg-panel</code></td><td><span class="swab" style="background:#1A1D26"></span>#1A1D26</td><td><span class="swab" style="background:#EDE8DD"></span>#EDE8DD</td><td>Sidebar, contenedores de sección</td></tr>
+      <tr><td><code>bg-card</code></td><td><span class="swab" style="background:#242835"></span>#242835</td><td><span class="swab" style="background:#FFFFFF;border:1px solid #ddd"></span>#FFFFFF</td><td>Cards elevadas (mixer, action panel)</td></tr>
+      <tr><td><code>border</code></td><td><span class="swab" style="background:#333849"></span>#333849</td><td><span class="swab" style="background:#DDD6C5"></span>#DDD6C5</td><td>Bordes de card, dividers</td></tr>
+      <tr><td><code>text-primary</code></td><td><span class="swab" style="background:#ECEAE4"></span>#ECEAE4</td><td><span class="swab" style="background:#211E19"></span>#211E19</td><td>Texto principal</td></tr>
+      <tr><td><code>text-secondary</code></td><td><span class="swab" style="background:#9498A3"></span>#9498A3</td><td><span class="swab" style="background:#7A7364"></span>#7A7364</td><td>Labels, hints, deshabilitado</td></tr>
+      <tr><td><code>copper-400</code></td><td colspan="2"><span class="swab" style="background:#E2925B"></span>#E2925B (fijo en ambos modos)</td><td>Acento de marca + toda acción que no sea iniciar/detener: sliders, focus, links, Escuchar, Cargar Archivo, Destino, Cargar Música</td></tr>
+      <tr><td><code>teal-400</code></td><td colspan="2"><span class="swab" style="background:#4FA8A0"></span>#4FA8A0 (fijo)</td><td>Faders de mezcla de audio</td></tr>
+      <tr><td><code>signal-green</code></td><td colspan="2"><span class="swab" style="background:#3FAE6A"></span>#3FAE6A (fijo)</td><td>Único uso: Iniciar Proceso</td></tr>
+      <tr><td><code>signal-red</code></td><td colspan="2"><span class="swab" style="background:#C4453A"></span>#C4453A (fijo)</td><td>Detener, Limpiar Cache, Cancelar — únicos usos</td></tr>
+    </table>
+  </section>
+
+</div>
+
+<script>
+  const body = document.body;
+  const toggle = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+  toggle.addEventListener('click', () => {
+    const next = body.dataset.theme === 'dark' ? 'light' : 'dark';
+    body.dataset.theme = next;
+    label.textContent = next === 'dark' ? 'Modo Oscuro' : 'Modo Claro';
+  });
+
+  // waveform seams (decorative, deterministic pattern)
+  function fillSeam(el, n){
+    let h = [];
+    for(let i=0;i<n;i++){ h.push(20 + Math.round(Math.abs(Math.sin(i*1.7))*70)); }
+    el.innerHTML = h.map(v=>`<i style="height:${v}%"></i>`).join('');
+  }
+  fillSeam(document.getElementById('seamTop'), 40);
+  fillSeam(document.getElementById('seamMid'), 40);
+
+  // meter demo: 12 bars, 8 active
+  const meter = document.getElementById('meterDemo');
+  for(let i=0;i<12;i++){
+    const bar = document.createElement('i');
+    const active = i < 8;
+    bar.className = active ? 'active' : '';
+    bar.style.height = active ? (30 + Math.round(Math.sin(i)*40+40)) + '%' : '25%';
+    meter.appendChild(bar);
+  }
+</script>
+</body>
+</html>

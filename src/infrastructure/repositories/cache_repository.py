@@ -3,7 +3,10 @@ import hashlib
 import shutil
 
 class CacheRepository:
-    def __init__(self, cache_dir: str = ".cache"):
+    def __init__(self, cache_dir: str = None):
+        if cache_dir is None:
+            from pathlib import Path
+            cache_dir = str(Path.home() / ".cache" / "pdf-to-speech")
         self.cache_dir = cache_dir
         os.makedirs(self.cache_dir, exist_ok=True)
 

@@ -6,15 +6,18 @@ from src.domain.ports.ocr_port import OcrPort
 from src.infrastructure.env_manager import env_manager
 
 class TesseractAdapter(OcrPort):
-    def __init__(self):
+    def __init__(self, journal=None):
         # Aplicar configuración local desde el env_manager
         env_manager.setup_ocr_environment()
+        self.journal = journal
 
     def _process_single_image(self, img_path: str) -> str:
         """Internal helper to process one image."""
         try:
             return pytesseract.image_to_string(Image.open(img_path), lang='spa+eng')
-        except:
+        except Exception as e:
+            if self.journal:
+                self.journal.warning(f"OCR falló en {img_path}: {e}")
             return ""
 
     def extract_text_from_images(self, image_paths: List[str]) -> str:

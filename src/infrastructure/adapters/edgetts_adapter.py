@@ -7,6 +7,9 @@ from src.domain.models.voice_settings import VoiceSettings
 from src.domain.ports.speech_generator import SpeechGeneratorPort
 
 class EdgeTTSAdapter(SpeechGeneratorPort):
+    def __init__(self, journal=None):
+        self.journal = journal
+
     def generate_speech(self, text: str, output_path: str, settings: VoiceSettings) -> None:
         """Generates MP3 directly with Exponential Backoff for resilience."""
         if not text or not text.strip():
@@ -47,7 +50,11 @@ class EdgeTTSAdapter(SpeechGeneratorPort):
                 wait_time = (base_delay * (2 ** attempt)) + random.uniform(0, 1)
                 
                 # If it's likely a rate limit or connection issue, we log and wait
-                print(f"[RETRY {attempt+1}/{MAX_RETRIES}] Error detectado: {e}. Reintentando en {wait_time:.2f}s...")
+                msg = f"[RETRY {attempt+1}/{MAX_RETRIES}] Error detectado: {e}. Reintentando en {wait_time:.2f}s..."
+                if self.journal:
+                    self.journal.warning(msg)
+                else:
+                    print(msg)
                 time.sleep(wait_time)
         
         if not success:

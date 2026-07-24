@@ -1,26 +1,31 @@
-import os
+"""Entry point — 100% Qt PySide6. Launches MainWindow."""
 import sys
-from tkinter import messagebox
-import tkinter as tk
+import os
 
-# Asegurar que el root esté en el path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.infrastructure.env_manager import env_manager
-from src.interfaces.gui.app import AntigravityApp
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt
+from src.interfaces.gui.main_window import MainWindow
+
+
+def main():
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
+    app = QApplication(sys.argv)
+    app.setApplicationName("PDF To Speech Studio")
+    app.setApplicationVersion("4.1")
+
+    ui_font = QFont("Inter", 13)
+    ui_font.setStyleHint(QFont.SansSerif)
+    app.setFont(ui_font)
+
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
 
 if __name__ == "__main__":
-    # VALIDACIÓN INICIAL DE BINARIOS LOCALES
-    if not env_manager.validate_binaries():
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror(
-            "Error de Sistema", 
-            "No se encontraron los binarios de Tesseract o Poppler en la carpeta /bin.\n\n"
-            "La aplicación no puede continuar."
-        )
-        sys.exit(1)
-
-    # Lanzar Aplicación
-    app = AntigravityApp()
-    app.mainloop()
+    main()

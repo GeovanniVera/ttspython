@@ -1,6 +1,6 @@
 # Flujo de Experiencia de Usuario (UI/UX) - PDF To Speech Studio
 
-Este documento detalla el recorrido del usuario (User Journey) y la arquitectura de información de la interfaz gráfica construida con `customtkinter`.
+Este documento detalla el recorrido del usuario (User Journey) y la arquitectura de información de la interfaz gráfica construida con **PySide6 (Qt)**.
 
 ## 1. Arquitectura de la Interfaz (Layout)
 La aplicación utiliza una disposición de **Panel Lateral (Sidebar)** y **Cuerpo Principal**, diseñada para un flujo de trabajo de izquierda a derecha.

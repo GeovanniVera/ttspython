@@ -3,12 +3,13 @@ edge-tts>=6.1.9
 # Optional legacy support
 pyttsx3>=2.90
 # Robust FFmpeg support
-imageioio-ffmpeg>=0.4.9
-customtkinter>=5.2.0
+imageio-ffmpeg>=0.4.9
 packaging
 pyinstaller
 pdf2image
 pytesseract
 Pillow
 certifi
-tkinterdnd2
+charset-normalizer>=3.0.0
+markdown-it-py>=3.0.0
+PySide6>=6.6.0

@@ -1,0 +1,618 @@
+/* ============================================
+   PDF To Speech Studio — Qt Theme Template
+   design/style-guide.html → QSS
+   Placeholders replaced by palette dicts via .format()
+   ============================================ */
+
+/* ── Global ─────────────────────────────────────────── */
+QWidget {{
+    background-color: {bg_base};
+    color: {text_primary};
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+}}
+
+QMainWindow {{
+    background-color: {bg_base};
+}}
+
+/* ── Frames ─────────────────────────────────────────── */
+QFrame {{
+    background-color: {bg_panel};
+    border: none;
+}}
+
+QWidget#sidebar {{
+    background-color: {bg_panel};
+    border-right: 1px solid {border};
+}}
+
+QWidget#toolbar {{
+    background-color: {bg_panel};
+    border-bottom: 1px solid {border};
+}}
+
+QFrame#main_area {{
+    background-color: {bg_base};
+    border: none;
+}}
+
+QFrame#main_area[dragActive="true"] {{
+    border: 2px dashed {copper};
+    background-color: rgba(226, 146, 91, 12);
+}}
+
+/* ── Cards: r-lg (14px), border, shadow via QGraphicsDropShadowEffect ── */
+QFrame#mixer_card {{
+    background-color: {bg_card};
+    border: 1px solid {border};
+    border-radius: 14px;
+}}
+
+QFrame#action_panel_card {{
+    background-color: {bg_card};
+    border: 1px solid {border};
+    border-radius: 14px;
+}}
+
+QFrame#history_container {{
+    background-color: transparent;
+    border: none;
+}}
+
+QWidget#progress_area {{
+    background-color: {bg_base};
+    border: none;
+}}
+
+/* ── Log Console — unified container ── */
+QWidget#log_container {{
+    background-color: transparent;
+    border: none;
+}}
+
+QFrame#log_header {{
+    background-color: {bg_card};
+    border: 1px solid {border};
+    border-bottom: none;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+}}
+
+QFrame#log_body {{
+    background-color: transparent;
+    border: none;
+}}
+
+QFrame#log_stack {{
+    background-color: transparent;
+    border: none;
+}}
+
+/* ── Equalizer Meter ────────────────────────────────── */
+QWidget#equalizer_meter {{
+    background-color: {bg_card};
+    border: 1px solid {border};
+    border-radius: 6px;
+}}
+
+/* ── Labels ─────────────────────────────────────────── */
+QLabel {{
+    background-color: transparent;
+    color: {text_primary};
+    border: none;
+}}
+
+QLabel#title {{
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 24px;
+    font-weight: bold;
+    color: {text_primary};
+}}
+
+QLabel#section {{
+    font-size: 12px;
+    font-weight: 600;
+    color: {text_secondary};
+    letter-spacing: 1px;
+}}
+
+QLabel#muted {{
+    color: {text_secondary};
+    font-size: 14px;
+}}
+
+QLabel#file_name {{
+    color: {copper};
+    font-weight: 600;
+    font-size: 14px;
+}}
+
+QLabel#status {{
+    color: {text_secondary};
+    font-size: 13px;
+    font-family: "JetBrains Mono", "Consolas", monospace;
+}}
+
+QLabel#mixer_label {{
+    font-size: 12.5px;
+    font-weight: 500;
+    color: {text_primary};
+}}
+
+QLabel#mixer_value {{
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: {copper};
+}}
+
+/* ── Buttons — base (sharp corners, shadow via effect) ── */
+QPushButton {{
+    background-color: {copper};
+    color: #2B1608;
+    border: none;
+    border-radius: 0;
+    padding: 11px 22px;
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: 0.01em;
+}}
+
+QPushButton:hover {{
+    background-color: {copper_hover};
+}}
+
+QPushButton:pressed {{
+    background-color: {copper_dark};
+}}
+
+QPushButton:disabled {{
+    background-color: {border_soft};
+    color: {text_secondary};
+}}
+
+QPushButton:focus {{
+    background-color: {copper_hover};
+}}
+
+QPushButton#btn_primary:focus {{
+    background-color: {signal_green_hover};
+}}
+
+QPushButton#btn_danger:focus {{
+    background-color: {signal_red_hover};
+}}
+
+QPushButton#btn_copper:focus {{
+    background-color: {copper_hover};
+}}
+
+QPushButton#btn_copper_outline:focus {{
+    background-color: rgba(226, 146, 91, 26);
+    border-color: {copper_hover};
+    color: {copper_hover};
+}}
+
+/* ── Primary: green — ONLY "Iniciar Proceso" ── */
+QPushButton#btn_primary {{
+    background-color: {signal_green};
+    color: #0C1F14;
+}}
+
+QPushButton#btn_primary:hover {{
+    background-color: {signal_green_hover};
+}}
+
+QPushButton#btn_primary:pressed {{
+    background-color: #2D8F52;
+}}
+
+/* ── Danger: red — Detener, Limpiar Cache, Cancelar ── */
+QPushButton#btn_danger {{
+    background-color: {signal_red};
+    color: #FFFFFF;
+}}
+
+QPushButton#btn_danger:hover {{
+    background-color: {signal_red_hover};
+}}
+
+QPushButton#btn_danger:pressed {{
+    background-color: #A83830;
+}}
+
+/* ── Copper: all other actions ── */
+QPushButton#btn_copper {{
+    background-color: {copper};
+    color: #2B1608;
+}}
+
+QPushButton#btn_copper:hover {{
+    background-color: {copper_hover};
+}}
+
+QPushButton#btn_copper:pressed {{
+    background-color: {copper_dark};
+}}
+
+/* ── Copper Outline: same family, subtle variant — bg_card + border + text copper ── */
+QPushButton#btn_copper_outline {{
+    background-color: {bg_card};
+    color: {copper};
+    border: 1px solid {copper};
+    border-radius: 0;
+    padding: 10px 21px;
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    letter-spacing: 0.01em;
+}}
+
+QPushButton#btn_copper_outline:hover {{
+    background-color: rgba(226, 146, 91, 26);
+    border-color: {copper_hover};
+    color: {copper_hover};
+}}
+
+QPushButton#btn_copper_outline:pressed {{
+    background-color: rgba(226, 146, 91, 51);
+    border-color: {copper_dark};
+    color: {copper_dark};
+}}
+
+/* ── Blue: log toggle, secondary actions ── */
+
+/* ── Flat (log close X) ── */
+QPushButton#btn_flat {{
+    background-color: transparent;
+    color: {text_secondary};
+    border: none;
+    border-radius: 0;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+QPushButton#btn_flat:hover {{
+    background-color: {signal_red};
+    color: #FFFFFF;
+}}
+
+/* ── Log toggle (floating pill) ── */
+QPushButton#btn_log_toggle {{
+    background-color: {bg_card};
+    color: {text_primary};
+    border: 1px solid {border};
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 600;
+}}
+
+QPushButton#btn_log_toggle:hover {{
+    background-color: {copper};
+    color: #2B1608;
+}}
+
+/* ── History buttons ── */
+QPushButton#btn_history {{
+    background-color: transparent;
+    color: {text_secondary};
+    border: none;
+    border-radius: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    text-align: left;
+}}
+
+QPushButton#btn_history:hover {{
+    background-color: {bg_card};
+    color: {copper};
+}}
+
+/* ── Sliders ── */
+QSlider {{
+    background-color: transparent;
+}}
+
+QSlider::groove:horizontal {{
+    border: none;
+    height: 4px;
+    background: {border_soft};
+    border-radius: 2px;
+}}
+
+/* Copper thumb — voice params (rate, pitch) */
+QSlider#slider_copper::handle:horizontal,
+QSlider::handle:horizontal {{
+    background: {copper};
+    border: 3px solid {bg_panel};
+    width: 16px;
+    height: 16px;
+    margin: -6px 0;
+    border-radius: 8px;
+}}
+
+QSlider#slider_copper::handle:horizontal:hover,
+QSlider::handle:horizontal:hover {{
+    background: {copper_hover};
+}}
+
+/* Teal thumb — audio faders (voice vol, music vol) */
+QSlider#slider_teal::handle:horizontal {{
+    background: {teal};
+    border: 3px solid {bg_panel};
+    width: 16px;
+    height: 16px;
+    margin: -6px 0;
+    border-radius: 8px;
+}}
+
+QSlider#slider_teal::handle:horizontal:hover {{
+    background: {teal_dark};
+}}
+
+QSlider#slider_copper::handle:horizontal:focus,
+QSlider::handle:horizontal:focus {{
+    background: {copper_hover};
+}}
+
+QSlider#slider_teal::handle:horizontal:focus {{
+    background: {teal_dark};
+}}
+
+QSlider::sub-page:horizontal {{
+    background: {copper};
+    border-radius: 2px;
+}}
+
+QSlider#slider_teal::sub-page:horizontal {{
+    background: {teal};
+}}
+
+QSlider::add-page:horizontal {{
+    background: {border_soft};
+    border-radius: 2px;
+}}
+
+/* ── ComboBox ── */
+QComboBox {{
+    background-color: {bg_card};
+    color: {text_primary};
+    border: 1px solid {border_soft};
+    border-radius: {radius_md};
+    padding: 11px 36px 11px 14px;
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    min-width: 160px;
+}}
+
+QComboBox:hover {{
+    border-color: {copper};
+}}
+
+QComboBox:focus {{
+    border-color: {copper};
+}}
+
+QComboBox::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 30px;
+    border: none;
+    border-top-right-radius: {radius_md};
+    border-bottom-right-radius: {radius_md};
+    background-color: transparent;
+}}
+
+QComboBox::down-arrow {{
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid {text_secondary};
+}}
+
+QComboBox QAbstractItemView {{
+    background-color: {bg_card};
+    color: {text_primary};
+    border: 1px solid {border};
+    selection-background-color: {copper};
+    selection-color: #2B1608;
+    border-radius: {radius_md};
+    padding: 4px;
+}}
+
+/* ── Toggle Switch: pill-shaped, copper when on ── */
+QCheckBox {{
+    color: {text_primary};
+    spacing: 12px;
+    background-color: transparent;
+    font-size: 13px;
+    font-weight: 500;
+}}
+
+/* ID selector beats QWidget wildcard specificity (1,0,0 vs 0,0,1) */
+QCheckBox#theme_switch {{
+    background-color: transparent;
+}}
+
+QCheckBox#switch_edit {{
+    background-color: transparent;
+}}
+
+QCheckBox::indicator {{
+    width: 42px;
+    height: 24px;
+    border-radius: 12px;
+    border: none;
+    background-color: {border};
+}}
+
+QCheckBox::indicator:checked {{
+    background-color: {copper};
+}}
+
+QCheckBox::indicator:hover {{
+    background-color: {border_soft};
+}}
+
+QCheckBox::indicator:checked:hover {{
+    background-color: {copper_dark};
+}}
+
+QCheckBox:disabled {{
+    color: {text_secondary};
+}}
+
+QCheckBox:disabled::indicator {{
+    background-color: {border_soft};
+}}
+
+/* ── Progress (replaced by EqualizerMeter, kept for fallback) ── */
+QProgressBar {{
+    background-color: {bg_card};
+    border: 1px solid {border};
+    border-radius: 6px;
+    max-height: 12px;
+    text-align: center;
+    color: transparent;
+}}
+
+QProgressBar::chunk {{
+    background-color: {copper};
+    border-radius: 6px;
+}}
+
+/* ── ScrollBar ── */
+QScrollBar:vertical {{
+    background-color: {bg_base};
+    width: 10px;
+    border: none;
+}}
+
+QScrollBar::handle:vertical {{
+    background-color: {border_soft};
+    min-height: 30px;
+    border-radius: 5px;
+}}
+
+QScrollBar::handle:vertical:hover {{
+    background-color: {copper};
+}}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0px;
+}}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+    background: none;
+}}
+
+QScrollBar:horizontal {{
+    background-color: {bg_base};
+    height: 10px;
+    border: none;
+}}
+
+QScrollBar::handle:horizontal {{
+    background-color: {border_soft};
+    min-width: 30px;
+    border-radius: 5px;
+}}
+
+QScrollBar::handle:horizontal:hover {{
+    background-color: {copper};
+}}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    width: 0px;
+}}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+    background: none;
+}}
+
+/* ── QTextEdit ── */
+QTextEdit {{
+    background-color: {bg_card};
+    color: {text_primary};
+    border: 1px solid {border};
+    border-radius: 14px;
+    padding: 12px;
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    selection-background-color: {copper};
+    selection-color: #2B1608;
+}}
+
+QTextEdit:focus {{
+    border-color: {copper};
+}}
+
+/* ── Log Console: empty state ── */
+QLabel#log_empty {{
+    background-color: #12141A;
+    color: {text_secondary};
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 12.5px;
+    padding: 16px;
+    border: 1px solid {border};
+    border-top: none;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}}
+
+/* ── Log Console: live text area (bottom half of unified container) ── */
+QTextEdit#log_console {{
+    background-color: #12141A;
+    color: {text_primary};
+    border: 1px solid {border};
+    border-top: none;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    font-family: "JetBrains Mono", "Consolas", monospace;
+    font-size: 12.5px;
+    padding: 16px;
+    line-height: 1.9;
+}}
+
+/* Scrollbar — log console (dark variant) */
+QTextEdit#log_console QScrollBar:vertical {{
+    background-color: transparent;
+    width: 8px;
+    border: none;
+}}
+
+QTextEdit#log_console QScrollBar::handle:vertical {{
+    background-color: {border_soft};
+    min-height: 30px;
+    border-radius: 4px;
+}}
+
+QTextEdit#log_console QScrollBar::handle:vertical:hover {{
+    background-color: {copper};
+}}
+
+QTextEdit#log_console QScrollBar::add-line:vertical,
+QTextEdit#log_console QScrollBar::sub-line:vertical {{
+    height: 0px;
+}}
+
+QTextEdit#log_console QScrollBar::add-page:vertical,
+QTextEdit#log_console QScrollBar::sub-page:vertical {{
+    background: none;
+}}
+
+/* ── Tooltips ── */
+QToolTip {{
+    background-color: {bg_card};
+    color: {text_primary};
+    border: 1px solid {border};
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+}}

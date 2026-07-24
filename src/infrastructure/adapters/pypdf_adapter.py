@@ -10,6 +10,9 @@ class PyPdfAdapter(DocumentExtractorPort):
     def __init__(self, ocr_adapter=None):
         self.ocr_adapter = ocr_adapter
 
+    def supports(self, file_path: str) -> bool:
+        return file_path.lower().endswith('.pdf')
+
     def extract_text(self, file_path: str) -> Tuple[str, Dict[str, Any]]:
         try:
             reader = PdfReader(file_path)
